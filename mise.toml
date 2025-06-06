@@ -1,0 +1,17 @@
+[tools]
+go = "1.24.4"
+
+[tasks.dev]
+description = "Run the shallowdepth cli"
+run = "go run ."
+dir = "{{cwd}}/cmd/shallowdepth"
+
+[tasks.build]
+description = "Build the shallowdepth cli"
+run = "go build -o {{cwd}}/build"
+dir = "{{cwd}}/cmd/shallowdepth"
+
+[tasks.prod]
+description = "Run built shallowdepth binary"
+run = "./shallowdepth"
+dir = "{{cwd}}/build"
