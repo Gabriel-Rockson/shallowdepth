@@ -10,5 +10,8 @@
       "prerelease": false,
       "sentence-case": true
     }
-  }
+  },
+  "extra-files": [
+    "version.go"
+  ]
 }
