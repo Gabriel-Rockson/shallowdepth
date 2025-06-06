@@ -3,6 +3,7 @@ package store
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
 )
 
 type SqliteStore struct {
@@ -40,5 +41,6 @@ func (s *SqliteStore) SaveActivity(a Activity) error {
 	if err != nil {
 		return fmt.Errorf("failed to save activity %s: %w", a.App, err)
 	}
+	slog.Info("successfully saved activity", "App", a.App, "ID", a.ID)
 	return nil
 }
