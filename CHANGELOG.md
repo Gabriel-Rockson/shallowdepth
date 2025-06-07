@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/Gabriel-Rockson/shallowdepth/compare/v0.4.0...v0.5.0) (2025-06-07)
+
+
+### Features
+
+* Enhance appearance of landing page ([300a820](https://github.com/Gabriel-Rockson/shallowdepth/commit/300a820a63709ca189b68cc27d765ae6cc161d6f))
+
 ## [0.4.0](https://github.com/Gabriel-Rockson/shallowdepth/compare/v0.3.0...v0.4.0) (2025-06-07)
 
 
