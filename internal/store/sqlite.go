@@ -24,8 +24,7 @@ func (s *SqliteStore) Initialize() error {
 	CREATE TABLE IF NOT EXISTS activity (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		app TEXT,
-		start_time DATETIME,
-		end_time DATETIME
+		timestamp DATETIME
 	);`
 
 	_, err := s.db.Exec(query)
@@ -34,13 +33,13 @@ func (s *SqliteStore) Initialize() error {
 
 func (s *SqliteStore) SaveActivity(a Activity) error {
 	query := `
-	INSERT INTO activity (id, app, start_time, end_time)
-	VALUES (?, ?, ?, ?)
+	INSERT INTO activity (app, timestamp)
+	VALUES (?, ?)
 	`
-	_, err := s.db.Exec(query, a.ID, a.App, a.StartTime, a.EndTime)
+	_, err := s.db.Exec(query, a.App, a.Timestamp)
 	if err != nil {
 		return fmt.Errorf("failed to save activity %s: %w", a.App, err)
 	}
-	slog.Info("successfully saved activity", "App", a.App, "ID", a.ID)
+	slog.Info("successfully saved activity", "App", a.App, "Timestamp", a.Timestamp)
 	return nil
 }

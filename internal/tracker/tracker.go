@@ -3,7 +3,6 @@ package tracker
 import (
 	"errors"
 	"log/slog"
-	"math/rand/v2"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -77,7 +76,7 @@ func getCurrentFocusedApp() (string, error) {
 
 // Start will commence the tracking processes to know about the currently focused apps and the urls being visited
 func (t *Tracker) Start() {
-	ticker := time.NewTicker(time.Second * 5)
+	ticker := time.NewTicker(time.Second * 1)
 
 	for {
 		select {
@@ -88,12 +87,13 @@ func (t *Tracker) Start() {
 			}
 
 			activity := store.Activity{
-				ID:        int(rand.Int64()),
 				App:       app,
-				StartTime: time.Now(),
-				EndTime:   time.Now(),
+				Timestamp: time.Now().UTC(),
 			}
-			t.store.SaveActivity(activity)
+			err = t.store.SaveActivity(activity)
+			if err != nil {
+				slog.Error("an error occurred saving the activity", "error", err)
+			}
 		}
 	}
 }
