@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/Gabriel-Rockson/shallowdepth/compare/v0.5.0...v0.6.0) (2025-06-07)
+
+
+### Features
+
+* Track activity by the second ([#16](https://github.com/Gabriel-Rockson/shallowdepth/issues/16)) ([6eb8dae](https://github.com/Gabriel-Rockson/shallowdepth/commit/6eb8dae3ae30df028990c68c1ec94d2a9c56f431))
+
 ## [0.5.0](https://github.com/Gabriel-Rockson/shallowdepth/compare/v0.4.0...v0.5.0) (2025-06-07)
 
 
