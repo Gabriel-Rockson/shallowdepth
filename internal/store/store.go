@@ -7,10 +7,9 @@ import (
 )
 
 type Activity struct {
-	ID        int
+	ID        string
 	App       string
-	StartTime time.Time
-	EndTime   time.Time
+	Timestamp time.Time
 }
 
 type Store interface {
@@ -19,7 +18,7 @@ type Store interface {
 }
 
 func Initialize() (Store, error) {
-	db, err := NewSqliteStore("./shallowdepth.db")
+	db, err := NewSqliteStore("shallowdepth.db")
 	if err != nil {
 		return nil, err
 	}
@@ -30,5 +29,4 @@ func Initialize() (Store, error) {
 	}
 
 	return db, nil
-
 }
