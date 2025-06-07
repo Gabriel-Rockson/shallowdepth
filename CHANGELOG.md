@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/Gabriel-Rockson/shallowdepth/compare/v0.3.0...v0.4.0) (2025-06-07)
+
+
+### Features
+
+* Add basic landing page ([#9](https://github.com/Gabriel-Rockson/shallowdepth/issues/9)) ([a4b105c](https://github.com/Gabriel-Rockson/shallowdepth/commit/a4b105cdadd879287df270a03bcf095d7840b076))
+
 ## [0.3.0](https://github.com/Gabriel-Rockson/shallowdepth/compare/v0.2.0...v0.3.0) (2025-06-06)
 
 
