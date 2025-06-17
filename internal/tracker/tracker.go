@@ -1,98 +1,126 @@
 package tracker
 
 import (
-	"errors"
+	"fmt"
 	"log/slog"
-	"os/exec"
-	"strconv"
-	"strings"
 	"time"
 
+	"github.com/go-vgo/robotgo"
+
 	"github.com/Gabriel-Rockson/shallowdepth/internal/store"
-	"github.com/Gabriel-Rockson/shallowdepth/pkg/utils"
 )
 
 type Tracker struct {
-	store store.Store
+	store        store.Store
+	lastActivity time.Time
+	lastApp      string
+	lastPosition robotgo.Point
 }
 
 func NewTracker(s store.Store) *Tracker {
-	return &Tracker{store: s}
+	return &Tracker{store: s, lastActivity: time.Now()}
 }
 
-func runCommandOutput(name string, args ...string) (string, error) {
-	out, err := exec.Command(name, args...).Output()
-	if err != nil {
-		return "", err
+// getCurrentFocusedApp gets the currently active window using robotgo
+func getCurrentFocusedApp() (string, string, error) {
+	pid := robotgo.GetPid()
+	if pid == 0 {
+		return "", "", fmt.Errorf("failed to get active window PID")
 	}
-	return strings.TrimSpace(string(out)), nil
+
+	windowTitle := robotgo.GetTitle()
+
+	appName, err := robotgo.FindName(pid)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get process name")
+
+		// Add fallback to get the window title a different way if this one fails
+	}
+
+	slog.Info("current active window", "pid", pid, "process", appName, "title", windowTitle)
+
+	return appName, windowTitle, nil
 }
 
-// -> First I want to get the current opened application
-// -> How do I deal with a scenario that many apps are opened?
-// -> One thing I know is that at anytime, multiple apps can be opened
-// but only one is going to have focus.
-// - is there a way to determine if a window has focus?
-// -> What about when a user is using 25 :) monitors? How do I
-// tell how many windows are opened across all monitors?
+func (t *Tracker) detectIdleTime() time.Duration {
+	x, y := robotgo.Location()
+	currPos := robotgo.Point{
+		X: x,
+		Y: y,
+	}
+	now := time.Now()
 
-func getCurrentFocusedApp() (string, error) {
-	winID, err := runCommandOutput("xdotool", "getactivewindow")
-	if err != nil {
-		slog.Error("failed to get active window ID", "error", err)
-		return "", err
+	if currPos.X != t.lastPosition.X || currPos.Y != t.lastPosition.Y {
+		t.lastActivity = now
+		t.lastPosition = currPos
 	}
 
-	xpropOut, err := runCommandOutput("xprop", "-id", winID, "_NET_WM_PID")
-	if err != nil {
-		slog.Error("failed to get _NET_WM_PID", "error", err)
-		return "", err
-	}
+	// TODO: What if the user hasn't moved the mouse but has been typing a lot, like how vim users will
+	// naturally work?
+	// I need to detect keyboard inputs, I don't need to register the input itself, but listen for keydown
+	// events and mark the user as active
+	return now.Sub(t.lastActivity)
+}
 
-	parts := strings.Split(xpropOut, "=")
-	if len(parts) != 2 {
-		err := errors.New("malformed xprop output")
-		slog.Error("unexpected xprop output", "output", xpropOut, "error", err)
-		return "", err
-	}
+func (t *Tracker) isUserActive() bool {
+	idleTime := t.detectIdleTime()
 
-	pidStr := strings.TrimSpace(parts[1])
-	pid, err := strconv.Atoi(pidStr)
-	if err != nil {
-		slog.Error("failed to parse PID", "error", err)
-		return "", err
-	}
+	// configurable threshold, you'd want the user to define this
+	idleThreshold := 5 * time.Minute
 
-	procName, err := runCommandOutput("ps", "-p", pidStr, "-o", "comm=")
-	if err != nil {
-		slog.Error("failed to get process name", "PID", pid, "error", err)
-		return "", err
-	}
-
-	procName = utils.Capitalize(procName)
-	slog.Info("current active window", "PID", pid, "Process", procName)
-	return procName, nil
+	return idleTime < idleThreshold
 }
 
 // Start will commence the tracking processes to know about the currently focused apps and the urls being visited
 func (t *Tracker) Start() {
 	ticker := time.NewTicker(time.Second * 1)
+	defer ticker.Stop()
+
+	var currSess *store.ActivitySession
+	sessTimeout := 30 * time.Second
 
 	for {
 		select {
 		case <-ticker.C:
-			app, err := getCurrentFocusedApp()
+			appName, windowTitle, err := getCurrentFocusedApp()
 			if err != nil {
 				slog.Error("an error occurred getting the current active app", "error", err)
+				continue
 			}
 
-			activity := store.Activity{
-				App:       app,
-				Timestamp: time.Now().UTC(),
-			}
-			err = t.store.SaveActivity(activity)
-			if err != nil {
-				slog.Error("an error occurred saving the activity", "error", err)
+			now := time.Now().UTC()
+			isActive := t.isUserActive()
+
+			// Handle the session logic
+			shouldStartNewSess := currSess == nil ||
+				currSess.App != appName ||
+				(!isActive && now.Sub(currSess.LastActivity) > sessTimeout)
+			if shouldStartNewSess {
+				// clean up old session
+				if currSess != nil {
+					currSess.EndTime = now
+					currSess.DurationSeconds = time.Duration(now.Sub(currSess.StartTime).Seconds())
+					err := t.store.SaveActivitySession(*currSess)
+					if err != nil {
+						slog.Error("an error occurred saving the activity", "error", err)
+					}
+					slog.Info("ended activity session", "app", currSess.App, "duration", now.Sub(currSess.StartTime))
+				}
+
+				// if the user is active, then start a new session
+				if isActive {
+					currSess = &store.ActivitySession{
+						App:          appName,
+						WindowTitle:  windowTitle,
+						StartTime:    now,
+						LastActivity: now,
+					}
+				} else {
+					currSess = nil
+				}
+			} else if isActive && currSess != nil {
+				currSess.LastActivity = now
+				currSess.WindowTitle = windowTitle // in-case window title has changed
 			}
 		}
 	}

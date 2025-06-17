@@ -6,15 +6,19 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type Activity struct {
-	ID        string
-	App       string
-	Timestamp time.Time
+type ActivitySession struct {
+	ID              string
+	App             string
+	WindowTitle     string
+	StartTime       time.Time
+	LastActivity    time.Time
+	EndTime         time.Time
+	DurationSeconds time.Duration
 }
 
 type Store interface {
 	Initialize() error
-	SaveActivity(Activity) error
+	SaveActivitySession(ActivitySession) error
 }
 
 func Initialize() (Store, error) {
