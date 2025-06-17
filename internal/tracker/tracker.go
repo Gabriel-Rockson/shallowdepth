@@ -125,7 +125,3 @@ func (t *Tracker) Start() {
 		}
 	}
 }
-
-// TODO: I want to check the idleness of the user, with this; I am considering using a tool https://pkg.go.dev/github.com/go-vgo/robotgo
-// this tool is a Golang Desktop Automation tool that will work for Windows, Linux (X11) and Mac, and maybe this will even help with getting
-// to know the current window that the user is interacting with.
