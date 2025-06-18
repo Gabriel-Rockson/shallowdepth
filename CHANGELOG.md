@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/Gabriel-Rockson/shallowdepth/compare/v0.6.0...v0.7.0) (2025-06-17)
+
+
+### Features
+
+* Store activity session instead of second by second events ([#24](https://github.com/Gabriel-Rockson/shallowdepth/issues/24)) ([03e6929](https://github.com/Gabriel-Rockson/shallowdepth/commit/03e69293cf4705be6bb29330ff14479d60b49ef6))
+
 ## [0.6.0](https://github.com/Gabriel-Rockson/shallowdepth/compare/v0.5.0...v0.6.0) (2025-06-07)
 
 
